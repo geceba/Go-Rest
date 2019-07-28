@@ -5,17 +5,19 @@ import(
   "net/http"
   "encoding/json"
   "github.com/gorilla/mux"
+  "./connect"
+  "./structures"
 )
 
-type User struct {
-  Username string `json:"username"`
-  First_Name string `json:"first_name"`
-  Last_Name string `json:"last_name"`
-}
+
 
 func main() {
+  connect.InitializeDatabase()
+
+  defer connect.CloseConnection()
+
   r := mux.NewRouter()
-  r.HandleFunc("/user/", GetUser).Methods("GET")
+  r.HandleFunc("/user/{id}", GetUser).Methods("GET")
   log.Println("El servidor se encuentra en el puerto 8000")
 
   log.Fatal(http.ListenAndServe(":8000", r))
@@ -23,6 +25,18 @@ func main() {
 
 
 func GetUser(w http.ResponseWriter, r* http.Request) {
-  user := User{"Gerardo Cetzal", "Gerardo", "Cetzal"}
-  json.NewEncoder(w).Encode(user)
+  vars := mux.Vars(r)
+  user_id := vars["id"]
+
+  status := "success"
+  var message string
+  user := connect.GetUser(user_id)
+
+  if(user.Id <= 0) {
+    status = "error"
+    message = "user not found"
+  }
+
+  response := structures.Response{ status, user, message}
+  json.NewEncoder(w).Encode(response)
 }
