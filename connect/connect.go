@@ -46,3 +46,28 @@ func GetUser(id string) structures.User {
 
   return user
 }
+
+func CreateUser(user structures.User) structures.User{
+  connection.Create(&user) // Se le asigna un id
+  return user
+}
+
+func UpdateUser(id string, user structures.User) structures.User{
+  currentUser := structures.User{}
+  connection.Where("id = ?", id).First(&currentUser)
+
+  currentUser.Username = user.Username
+  currentUser.First_Name = user.First_Name
+  currentUser.Last_Name = user.Last_Name
+
+  connection.Save(&currentUser)
+
+  return currentUser
+}
+
+func DeleteUser(id string) {
+  user := structures.User{}
+  connection.Where("id = ?", id).First(&user)
+
+  connection.Delete(&user)
+}
